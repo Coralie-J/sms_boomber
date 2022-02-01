@@ -51,7 +51,6 @@ public class MessageFormFragment extends Fragment {
                 if (! edit_message.getText().toString().trim().isEmpty()){
                     MainActivity mainActivity = (MainActivity) getActivity();
                     mainActivity.addMessage(edit_message.getText().toString());
-                    // mainActivity.getMessageAdapter().notifyItemInserted(mainActivity.getMessages().size() - 1);
                 }
             }
         });

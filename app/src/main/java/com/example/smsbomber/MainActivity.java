@@ -48,9 +48,6 @@ public class MainActivity extends AppCompatActivity {
 
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        restoreTasks();
-        this.contactAdapter = new ContactAdapter(this.contacts);
-        this.messageAdapter = new MessageAdapter(this.messages);
 
         SectionsPagerAdapter sectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager(), getLifecycle());
         ViewPager2 viewPager = binding.viewPager;
@@ -72,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
         }).attach();
 
         askForPermission();
+        restoreTasks();
+        this.contactAdapter = new ContactAdapter(this.contacts);
+        this.messageAdapter = new MessageAdapter(this.messages);
 
     }
 
@@ -142,9 +142,8 @@ public class MainActivity extends AppCompatActivity {
                 for (int i=0; i< 6; i++) {
                     int indice_contact = random.nextInt(this.contacts.size());
                     int indice_message = random.nextInt(this.messages.size());
-                    Log.i("TEST", "Indice contact : " + indice_contact);
-                    Log.i("TEST", "Indice message : " + indice_message);
-                    sendSMS(this.contacts.get(indice_contact).getPhonenumber(), this.messages.get(indice_message));
+
+                    // sendSMS(this.contacts.get(indice_contact).getPhonenumber(), this.messages.get(indice_message));
                 }
             }
         }
@@ -183,13 +182,14 @@ public class MainActivity extends AppCompatActivity {
     public void sendSMS(String phoneNumber, String message) {
         PendingIntent pi = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
         SmsManager sms = SmsManager.getDefault();
-        sms.sendTextMessage(phoneNumber, null, message, pi, null);
-
-        for (Contacts contact : this.contacts){
-            if (contact.getPhonenumber().equals(phoneNumber)) {
-                Log.i("SMS Pause", "Contact trouvé " + contact.getName());
-                contact.incrementeNbMessages();
-                this.contactAdapter.notifyDataSetChanged();
+        if (phoneNumber.startsWith("+337") || phoneNumber.startsWith("+336") || phoneNumber.startsWith("06") || phoneNumber.startsWith("07")){
+            sms.sendTextMessage(phoneNumber, null, message, pi, null);
+            for (Contacts contact : this.contacts){
+                if (contact.getPhonenumber().equals(phoneNumber)) {
+                    Log.i("SMS Pause", "Contact trouvé " + contact.getName());
+                    contact.incrementeNbMessages();
+                    this.contactAdapter.notifyDataSetChanged();
+                }
             }
         }
     }

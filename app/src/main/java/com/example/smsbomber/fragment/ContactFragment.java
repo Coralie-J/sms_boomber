@@ -40,7 +40,7 @@ public class ContactFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         MainActivity mainActivity = (MainActivity) getActivity();
         if (MainActivity.result_contacts == 0)
-            getAllContacts();
+            getContacts();
 
         View layout = inflater.inflate(R.layout.fragment_contact, container, false);
 
@@ -52,7 +52,7 @@ public class ContactFragment extends Fragment {
     }
 
     @SuppressLint("Range")
-    private void getAllContacts() {
+    private void getContacts() {
         ContentResolver cr = getActivity().getContentResolver();
 
         Cursor cur = cr.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
