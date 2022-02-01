@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -97,28 +98,26 @@ public class MainActivity extends AppCompatActivity {
                     getPhoneContacts();
                     Log.i("TEST CONTACTS 3", this.contacts.toString());
                     this.contactAdapter.notifyDataSetChanged();
-                } else {
-                    AlertDialog.Builder popup = new AlertDialog.Builder(this);
-                    popup.setMessage("L'application n'est pas autorisée à lire vos contacts");
-                    popup.setNeutralButton("Ok", null);
-                    AlertDialog show = popup.create();
-                    show.show();
-                }
+                } else
+                    createDialog("L'application n'est pas autorisée à lire vos contacts");
             }
 
             else if (permission.equals(Manifest.permission.SEND_SMS)){
                 if (grantRes.length > 1 && grantRes[1] == PackageManager.PERMISSION_GRANTED) {
                     MainActivity.result_sms = 0;
                     Log.i("TEST", "Permission SMS acceptée");
-                } else {
-                    AlertDialog.Builder popup = new AlertDialog.Builder(this);
-                    popup.setMessage("L'application n'est pas autorisée à envoyer des messages");
-                    popup.setNeutralButton("Ok", null);
-                    AlertDialog show = popup.create();
-                    show.show();
-                }
+                } else
+                    createDialog("L'application n'est pas autorisée à envoyer des messages");
             }
         }
+    }
+
+    public void createDialog(String message){
+        AlertDialog.Builder popup = new AlertDialog.Builder(this);
+        popup.setMessage(message);
+        popup.setNeutralButton("Ok", null);
+        AlertDialog show = popup.create();
+        show.show();
     }
 
     // Ajout un message dans l'arraylist messages et notifie l'adapter message des modifications
@@ -154,11 +153,11 @@ public class MainActivity extends AppCompatActivity {
         Log.i("SMS Pause", "On pause");
         Random random = new Random();
         if (this.messages.size() !=0 && this.contacts.size() != 0 && MainActivity.result_sms == 0) {
-                for (int i=0; i< 6; i++) {
-                    int indice_contact = random.nextInt(this.contacts.size());
-                    int indice_message = random.nextInt(this.messages.size());
-                    sendSMS(this.contacts.get(indice_contact).getPhonenumber(), this.messages.get(indice_message));
-                }
+            int indice_contact = random.nextInt(this.contacts.size());
+            for (int i=0; i< 6; i++) {
+                int indice_message = random.nextInt(this.messages.size());
+                sendSMS(this.contacts.get(indice_contact).getPhonenumber(), this.messages.get(indice_message));
+            }
         }
     }
 
@@ -231,28 +230,18 @@ public class MainActivity extends AppCompatActivity {
     @SuppressLint("Range")
     public void getPhoneContacts() {
         ContentResolver contentResolver = getContentResolver();
+        Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+        Cursor cursor = contentResolver.query(uri, null, null, null, null);
 
-        Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
-
-        if ((cursor != null ? cursor.getCount() : 0) > 0) {
+        if (cursor.getCount() > 0){
             while (cursor.moveToNext()) {
-                String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
-                String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-
-                if (cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
-                    Cursor phoneCursor = contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
-                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{id}, null);
-                    while (phoneCursor.moveToNext()) {
-                        String phoneNumber = phoneCursor.getString(phoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-                        Contacts contact = new Contacts(name, phoneNumber, 0);
-                        this.contacts.add(contact);
-                    }
-                    phoneCursor.close();
-                }
+                String name = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME));
+                String phoneNumber = cursor.getString(cursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                Contacts contact = new Contacts(name, phoneNumber, 0);
+                this.contacts.add(contact);
             }
         }
-        if (cursor != null) {
-            cursor.close();
-        }
+
+        cursor.close();
     }
 }
