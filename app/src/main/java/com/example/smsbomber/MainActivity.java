@@ -1,12 +1,16 @@
 package com.example.smsbomber;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.PendingIntent;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.telephony.SmsManager;
 import android.util.Log;
 import android.widget.Toast;
@@ -39,7 +43,6 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> messages;
     private MessageAdapter messageAdapter;
     private ContactAdapter contactAdapter;
-    public static int result_contacts = 1;
     public static int result_sms = 1;
 
     @Override
@@ -63,13 +66,15 @@ public class MainActivity extends AppCompatActivity {
                         tab.setText("Save Message");
                         break;
                 case 2:
-                    tab.setText("Liste Message");
-                    break;
+                        tab.setText("Liste Message");
+                        break;
             }
         }).attach();
 
-        askForPermission();
         restoreTasks();
+        Log.i("TEST CONTACTS", this.contacts.toString());
+        askForPermission();
+        Log.i("TEST CONTACTS", this.contacts.toString());
         this.contactAdapter = new ContactAdapter(this.contacts);
         this.messageAdapter = new MessageAdapter(this.messages);
 
@@ -87,7 +92,9 @@ public class MainActivity extends AppCompatActivity {
         for (String permission: permissions) {
             if (permission.equals(Manifest.permission.READ_CONTACTS)) {
                 if (grantRes.length > 0 && grantRes[0] == PackageManager.PERMISSION_GRANTED) {
-                    MainActivity.result_contacts = 0;
+                    getPhoneContacts();
+                    Log.i("TEST CONTACTS 3", this.contacts.toString());
+                    this.contactAdapter.notifyDataSetChanged();
                 } else {
                     AlertDialog.Builder popup = new AlertDialog.Builder(this);
                     popup.setMessage("L'application n'est pas autorisée à lire vos contacts");
@@ -138,14 +145,11 @@ public class MainActivity extends AppCompatActivity {
         Random random = new Random();
 
         if (this.messages.size() !=0 && this.contacts.size() != 0) {
-            if (MainActivity.result_sms == 0) {
                 for (int i=0; i< 6; i++) {
                     int indice_contact = random.nextInt(this.contacts.size());
                     int indice_message = random.nextInt(this.messages.size());
-
                     // sendSMS(this.contacts.get(indice_contact).getPhonenumber(), this.messages.get(indice_message));
                 }
-            }
         }
     }
 
@@ -191,6 +195,34 @@ public class MainActivity extends AppCompatActivity {
                     this.contactAdapter.notifyDataSetChanged();
                 }
             }
+        }
+    }
+
+    @SuppressLint("Range")
+    public void getPhoneContacts() {
+        ContentResolver contentResolver = getContentResolver();
+
+        Cursor cursor = contentResolver.query(ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+
+        if ((cursor != null ? cursor.getCount() : 0) > 0) {
+            while (cursor.moveToNext()) {
+                String id = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts._ID));
+                String name = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
+
+                if (cursor.getInt(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER)) > 0) {
+                    Cursor pCur = contentResolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?", new String[]{id}, null);
+                    while (pCur.moveToNext()) {
+                        String phoneNumber = pCur.getString(pCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
+                        Contacts contact = new Contacts(name, phoneNumber, 0);
+                        this.contacts.add(contact);
+                    }
+                    pCur.close();
+                }
+            }
+        }
+        if (cursor != null) {
+            cursor.close();
         }
     }
 }

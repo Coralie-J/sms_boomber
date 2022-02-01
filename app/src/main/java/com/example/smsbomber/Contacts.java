@@ -26,4 +26,13 @@ public class Contacts {
     public void incrementeNbMessages(){
         this.nb_messages++;
     }
+
+    @Override
+    public String toString() {
+        return "Contacts{" +
+                "name='" + name + '\'' +
+                ", phonenumber='" + phonenumber + '\'' +
+                ", nb_messages=" + nb_messages +
+                '}';
+    }
 }
