@@ -1,13 +1,9 @@
 package com.example.smsbomber.fragment;
 
-import android.app.PendingIntent;
-import android.content.Intent;
+
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
-
-import android.telephony.SmsManager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,11 +13,7 @@ import android.widget.EditText;
 import com.example.smsbomber.MainActivity;
 import com.example.smsbomber.R;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link MessageFormFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
+
 public class MessageFormFragment extends Fragment {
 
 

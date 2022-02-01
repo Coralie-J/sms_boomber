@@ -79,10 +79,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    // Demander la permission à l'utilisateur pour voir ses contacts et envoyer des SMS
+
     private void askForPermission() {
         String[] permissions = new String[]{Manifest.permission.READ_CONTACTS, Manifest.permission.SEND_SMS};
         ActivityCompat.requestPermissions(this, permissions, PERMISSIONS_CODE);
-        // ActivityCompat.requestPermissions(this, permissions, PERMISSIONS_CODE);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -120,6 +121,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // Ajout un message dans l'arraylist messages et notifie l'adapter message des modifications
+
     public void addMessage(String message){
         this.messages.add(message);
         this.messageAdapter.notifyItemInserted(this.messages.size() - 1);
@@ -141,6 +144,10 @@ public class MainActivity extends AppCompatActivity {
         return messageAdapter;
     }
 
+    /* Partie SMS Bomber, on prend au hasard 6 contacts et 6 messages parmi ceux enregistrés
+       dans l'application et on les envoie.
+    */
+
     @Override
     protected void onPause() {
         super.onPause();
@@ -160,6 +167,9 @@ public class MainActivity extends AppCompatActivity {
         super.onStop();
         SharedPreferences sharedPreferences = getSharedPreferences("smsboomber", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
+
+        // Enregistrement des contacts et des messages
+
         Gson gson = new Gson();
         String contact_string = gson.toJson(contacts);
         String messages_str = gson.toJson(messages);
@@ -168,6 +178,8 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
+    // Restauration des données dans le cas où l'utilisateur quitte l'app
+
     public void restoreTasks(){
         SharedPreferences sharedPreferences = getSharedPreferences("smsboomber", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -175,6 +187,8 @@ public class MainActivity extends AppCompatActivity {
         String messages_json = sharedPreferences.getString("messages", null);
         Type type2 = new TypeToken<ArrayList<String>>() {}.getType();
         Gson gson = new Gson();
+
+        // Dans le cas où l'utilisateur change ses permissions, on supprime ses contacts
 
         if (MainActivity.result_contact == 0) {
             Type type = new TypeToken<ArrayList<Contacts>>() {}.getType();
@@ -189,14 +203,19 @@ public class MainActivity extends AppCompatActivity {
             this.contacts = new ArrayList<>();
         if (this.messages == null)
             this.messages = new ArrayList<>();
-
     }
 
     public void sendSMS(String phoneNumber, String message) {
         PendingIntent pi = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
         SmsManager sms = SmsManager.getDefault();
+
+        // Si le numéro commence par +337, +336, 06 ou 07, on envoie le message mis en paramètre
+
         if (phoneNumber.startsWith("+337") || phoneNumber.startsWith("+336") || phoneNumber.startsWith("06") || phoneNumber.startsWith("07")){
             sms.sendTextMessage(phoneNumber, null, message, pi, null);
+
+            // Mise à jour des stats
+
             for (Contacts contact : this.contacts){
                 if (contact.getPhonenumber().equals(phoneNumber)) {
                     Log.i("SMS Pause", "Contact trouvé " + contact.getName());
@@ -206,6 +225,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    // Récupération des contacts du téléphone
 
     @SuppressLint("Range")
     public void getPhoneContacts() {
